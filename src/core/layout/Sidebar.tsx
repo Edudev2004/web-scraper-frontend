@@ -5,61 +5,48 @@ export const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        CIRION // PRO
+        <img src="/sw-isologo.webp"  className="logo-collapsed" alt="Icon" />
+        <img src="/sw-imagotipo.webp" className="logo-expanded" alt="Scraping Web Logo" />
       </div>
       <nav className="sidebar-nav">
-        <NavLink 
-          to="/" 
-          className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-        >
-          <LayoutDashboard size={18} /> Dashboard
+        <NavLink to="/" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <LayoutDashboard size={20} className="nav-icon" />
+          <span className="nav-text">Dashboard</span>
         </NavLink>
-        <NavLink 
-          to="/products" 
-          className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-        >
-          <Database size={18} /> Términos & Objetivos
+        <NavLink to="/products" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <Database size={20} className="nav-icon" />
+          <span className="nav-text">Términos & Objetivos</span>
         </NavLink>
-        
-        <div style={{ padding: '1.5rem 1.5rem 0.5rem', color: '#555', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px' }}>ADMINISTRACIÓN</div>
-        
-        <NavLink 
-          to="/vendors" 
-          className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-        >
-          <Server size={18} /> Proveedores
+
+        <div className="nav-group-title">
+          <span className="nav-text">ADMINISTRACIÓN</span>
+        </div>
+
+        <NavLink to="/vendors" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <Server size={20} className="nav-icon" />
+          <span className="nav-text">Proveedores</span>
         </NavLink>
-        <NavLink 
-          to="/alerts" 
-          className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-        >
-          <Bell size={18} /> Alertas & Reglas
+        <NavLink to="/alerts" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <Bell size={20} className="nav-icon" />
+          <span className="nav-text">Alertas & Reglas</span>
         </NavLink>
-        <NavLink 
-          to="/metrics" 
-          className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-        >
-          <ActivitySquare size={18} /> Rendimiento
+        <NavLink to="/metrics" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <ActivitySquare size={20} className="nav-icon" />
+          <span className="nav-text">Rendimiento</span>
         </NavLink>
-        
+
         <div style={{ flexGrow: 1 }}></div>
-        
-        <NavLink 
-          to="/settings" 
-          className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-        >
-          <Settings size={18} /> Configuración
+
+        <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+          <Settings size={20} className="nav-icon" />
+          <span className="nav-text">Configuración</span>
         </NavLink>
-        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-          <Users size={18} /> Admin (root)
+        <div className="nav-user">
+          <Users size={20} className="nav-icon" />
+          <span className="nav-text">Admin (root)</span>
         </div>
       </nav>
     </aside>
   );
 };
+
