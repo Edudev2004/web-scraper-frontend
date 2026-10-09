@@ -3,7 +3,7 @@ import { dashboardService } from '../../dashboard/services/dashboardService';
 import { productService } from '../services/productService';
 import type { Product } from '../../dashboard/types';
 import { motion } from 'framer-motion';
-import { Database, Plus, Trash2, Crosshair, Edit2, Save, X, Hash, Activity } from 'lucide-react';
+import { Database, Plus, Trash2, Crosshair, Edit2, Save, X, Hash, Activity, BookOpen, Sparkles, Lightbulb, HelpCircle, CheckCircle2 } from 'lucide-react';
 
 const SearchableSelect = ({ items, valueId, onChange, onCreate, onDelete, itemNameKey, itemIdKey, defaultItemName }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -183,6 +183,42 @@ export const ProductsPage = () => {
       category_id: defCat?.category_id || 1 
     });
     setEditingId(null);
+  };
+
+  const applyPreset = (preset: 'cisco' | 'mikrotik' | 'rack') => {
+    if (preset === 'cisco') {
+      const ciscoBrand = brands.find(b => b.brand_name.toLowerCase().includes('cisco')) || brands[0];
+      setFormData({
+        product_name: 'Switch Catalyst 48 Puertos PoE+ 1U',
+        model_number: 'C9200-48P',
+        part_number: 'C9200L-48P-4X-E',
+        description: 'Switch administrable de acceso capa 3, 48 puertos PoE+ y 4 uplinks 10G',
+        brand_id: ciscoBrand?.brand_id || 1,
+        category_id: formData.category_id || 1
+      });
+      showToast("Ejemplo Cisco cargado en el formulario.", "success");
+    } else if (preset === 'mikrotik') {
+      const mtBrand = brands.find(b => b.brand_name.toLowerCase().includes('mikrotik')) || brands[0];
+      setFormData({
+        product_name: 'Router Gigabit Ethernet 5 Puertos',
+        model_number: 'RB750Gr3',
+        part_number: 'RB750Gr3',
+        description: 'Routerboard hEX 5x Gigabit 10/100/1000 Dual-Core RouterOS L4',
+        brand_id: mtBrand?.brand_id || 1,
+        category_id: formData.category_id || 1
+      });
+      showToast("Ejemplo MikroTik cargado en el formulario.", "success");
+    } else if (preset === 'rack') {
+      setFormData({
+        product_name: 'Gabinete de Pared 9U Negro Puerta Vidrio',
+        model_number: 'GAB-9U',
+        part_number: '',
+        description: 'Gabinete rack de pared estándar 19 pulgadas profundidad 450mm',
+        brand_id: formData.brand_id || 1,
+        category_id: formData.category_id || 1
+      });
+      showToast("Ejemplo Gabinete Rack cargado (P/N opcional).", "success");
+    }
   };
 
   const handleEditClick = (prod: Product) => {
@@ -410,6 +446,19 @@ export const ProductsPage = () => {
 
       <header className="sharp-header">
         <h1><Database size={28} color="var(--accent)"/> TÉRMINOS & OBJETIVOS</h1>
+        <button 
+          type="button"
+          className="sharp-btn"
+          onClick={() => window.dispatchEvent(new CustomEvent('open-system-guide'))}
+          style={{ 
+            background: 'rgba(0, 240, 255, 0.05)', 
+            borderColor: 'var(--accent)', 
+            color: 'var(--accent)',
+            fontSize: '0.8rem'
+          }}
+        >
+          <BookOpen size={16} /> GUÍA DE BÚSQUEDA & REGLAS
+        </button>
       </header>
 
       {/* KPIs Rápidos */}
@@ -432,97 +481,212 @@ export const ProductsPage = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '2rem' }}>
         {/* FORMULARIO */}
-        <div className="sharp-panel" style={{ alignSelf: 'start', borderColor: editingId ? 'var(--alert-green)' : 'var(--border-color)' }}>
-          <h2 className="section-title">
-            <Crosshair size={18} /> {editingId ? 'Editar Objetivo' : 'Nuevo Objetivo'}
-          </h2>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>TÉRMINO DE BÚSQUEDA *</label>
-              <input 
-                type="text" 
-                required
-                value={formData.product_name}
-                onChange={e => setFormData({...formData, product_name: e.target.value})}
-                placeholder="Ej. Switch Cisco 9200"
-                style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace' }}
-              />
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>MARCA</label>
-                <SearchableSelect 
-                  items={brands}
-                  valueId={formData.brand_id}
-                  onChange={(id: number) => setFormData({...formData, brand_id: id})}
-                  onCreate={handleCreateBrand}
-                  onDelete={handleDeleteBrand}
-                  itemNameKey="brand_name"
-                  itemIdKey="brand_id"
-                  defaultItemName="Sin Marca"
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>CATEGORÍA</label>
-                <SearchableSelect 
-                  items={categories}
-                  valueId={formData.category_id}
-                  onChange={(id: number) => setFormData({...formData, category_id: id})}
-                  onCreate={handleCreateCategory}
-                  onDelete={handleDeleteCategory}
-                  itemNameKey="category_name"
-                  itemIdKey="category_id"
-                  defaultItemName="Sin Categoría"
-                />
-              </div>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignSelf: 'start' }}>
+          <div className="sharp-panel" style={{ borderColor: editingId ? 'var(--alert-green)' : 'var(--border-color)' }}>
+            <h2 className="section-title">
+              <Crosshair size={18} /> {editingId ? 'Editar Objetivo' : 'Nuevo Objetivo'}
+            </h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>MODELO</label>
-                <input 
-                  type="text" 
-                  value={formData.model_number}
-                  onChange={e => setFormData({...formData, model_number: e.target.value})}
-                  placeholder="Opcional"
-                  style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace' }}
-                />
+            {/* BARRA DE PLANTILLAS RÁPIDAS DE EJEMPLO */}
+            <div style={{ marginBottom: '1.2rem', background: '#0a0a0a', border: '1px solid #1f1f1f', padding: '0.75rem', borderRadius: '4px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Sparkles size={13} color="var(--accent)" />
+                <span>PLANTILLAS RÁPIDAS DE EJEMPLO:</span>
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>PART NUMBER</label>
-                <input 
-                  type="text" 
-                  value={formData.part_number}
-                  onChange={e => setFormData({...formData, part_number: e.target.value})}
-                  placeholder="Opcional"
-                  style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace' }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>DESCRIPCIÓN</label>
-              <textarea 
-                value={formData.description}
-                onChange={e => setFormData({...formData, description: e.target.value})}
-                placeholder="Especificaciones o notas adicionales (Opcional)"
-                style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace', minHeight: '80px', resize: 'vertical' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <button type="submit" className="sharp-btn" style={{ flexGrow: 1, justifyContent: 'center' }}>
-                {editingId ? <Save size={16} /> : <Plus size={16} />} 
-                {editingId ? ' GUARDAR CAMBIOS' : ' AÑADIR AL ESCÁNER'}
-              </button>
-              {editingId && (
-                <button type="button" onClick={resetForm} className="sharp-btn" style={{ padding: '0.5rem', borderColor: '#555', color: '#888' }}>
-                  <X size={16} />
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('cisco')}
+                  style={{
+                    background: '#151515',
+                    border: '1px solid #333',
+                    color: '#fff',
+                    padding: '0.3rem 0.6rem',
+                    fontSize: '0.7rem',
+                    cursor: 'pointer',
+                    borderRadius: '3px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#333'}
+                >
+                  ⚡ Cisco PoE (P/N)
                 </button>
-              )}
+                <button
+                  type="button"
+                  onClick={() => applyPreset('mikrotik')}
+                  style={{
+                    background: '#151515',
+                    border: '1px solid #333',
+                    color: '#fff',
+                    padding: '0.3rem 0.6rem',
+                    fontSize: '0.7rem',
+                    cursor: 'pointer',
+                    borderRadius: '3px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#333'}
+                >
+                  ⚡ MikroTik Router
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('rack')}
+                  style={{
+                    background: '#151515',
+                    border: '1px solid #333',
+                    color: '#fff',
+                    padding: '0.3rem 0.6rem',
+                    fontSize: '0.7rem',
+                    cursor: 'pointer',
+                    borderRadius: '3px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#333'}
+                >
+                  ⚡ Gabinete 9U (Sin P/N)
+                </button>
+              </div>
             </div>
-          </form>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              <div>
+                <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.8rem', color: '#fff', fontWeight: 600 }}>
+                  <span>TÉRMINO DE BÚSQUEDA *</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 'normal' }}>Obligatorio</span>
+                </label>
+                <input 
+                  type="text" 
+                  required
+                  value={formData.product_name}
+                  onChange={e => setFormData({...formData, product_name: e.target.value})}
+                  placeholder="Ej. Switch Cisco 48 puertos PoE / Gabinete 42U Negro"
+                  style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace' }}
+                />
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.35rem', lineHeight: '1.4' }}>
+                  💡 Incluye el tipo de equipo y atributos descriptivos como <strong>Color</strong> (<em>Blanco, Negro</em>) o <strong>RU</strong> (<em>1U, 42U</em>).
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>MARCA</label>
+                  <SearchableSelect 
+                    items={brands}
+                    valueId={formData.brand_id}
+                    onChange={(id: number) => setFormData({...formData, brand_id: id})}
+                    onCreate={handleCreateBrand}
+                    onDelete={handleDeleteBrand}
+                    itemNameKey="brand_name"
+                    itemIdKey="brand_id"
+                    defaultItemName="Sin Marca"
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>CATEGORÍA</label>
+                  <SearchableSelect 
+                    items={categories}
+                    valueId={formData.category_id}
+                    onChange={(id: number) => setFormData({...formData, category_id: id})}
+                    onCreate={handleCreateCategory}
+                    onDelete={handleDeleteCategory}
+                    itemNameKey="category_name"
+                    itemIdKey="category_id"
+                    defaultItemName="Sin Categoría"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    MODELO <span style={{ fontSize: '0.7rem', color: '#666' }}>(Serie)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={formData.model_number}
+                    onChange={e => setFormData({...formData, model_number: e.target.value})}
+                    placeholder="Ej. C9200-48P / RB750Gr3"
+                    style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace' }}
+                  />
+                  <div style={{ fontSize: '0.7rem', color: '#777', marginTop: '0.3rem' }}>
+                    Serie general del equipo. El bot exige coincidencia con esta serie.
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    PART NUMBER <span style={{ fontSize: '0.7rem', color: 'var(--alert-green)' }}>(P/N exacto)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={formData.part_number}
+                    onChange={e => setFormData({...formData, part_number: e.target.value})}
+                    placeholder="Ej. C9200L-48P-4X-E"
+                    style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace' }}
+                  />
+                  <div style={{ fontSize: '0.7rem', color: '#777', marginTop: '0.3rem' }}>
+                    Código/SKU de fábrica (define puertos, PoE, CPU, licencias). Solo el código.
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>DESCRIPCIÓN / NOTAS</label>
+                <textarea 
+                  value={formData.description}
+                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  placeholder="Especificaciones técnicas o notas del proyecto (Opcional)"
+                  style={{ width: '100%', background: '#0a0a0a', border: '1px solid var(--border-color)', color: '#fff', padding: '0.8rem', fontFamily: 'monospace', minHeight: '60px', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <button type="submit" className="sharp-btn" style={{ flexGrow: 1, justifyContent: 'center' }}>
+                  {editingId ? <Save size={16} /> : <Plus size={16} />} 
+                  {editingId ? ' GUARDAR CAMBIOS' : ' AÑADIR AL ESCÁNER'}
+                </button>
+                {editingId && (
+                  <button type="button" onClick={resetForm} className="sharp-btn" style={{ padding: '0.5rem', borderColor: '#555', color: '#888' }}>
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* TARJETA GUÍA & RECOMENDACIONES */}
+          <div className="sharp-panel" style={{ background: '#0c0c0c', border: '1px solid #1f1f1f', padding: '1.2rem' }}>
+            <h3 style={{ fontSize: '0.85rem', color: 'var(--accent)', margin: '0 0 0.8rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '1px' }}>
+              <Lightbulb size={16} color="var(--accent)" /> GUÍA DE USO Y RECOMENDACIONES
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', fontSize: '0.78rem', color: '#aaa', lineHeight: '1.5' }}>
+              <div>
+                <span style={{ color: '#fff', fontWeight: 'bold' }}>1. Nombre / Término:</span> Para el tipo de equipo y atributos descriptivos como <strong>Color</strong> (<em>Blanco, Negro</em>) o unidades de rack <strong>RU</strong> (<em>1U, 2U, 42U</em>).
+              </div>
+              <div>
+                <span style={{ color: '#fff', fontWeight: 'bold' }}>2. Modelo:</span> La serie o familia principal (ej. <em>C9200-48P</em> o <em>RB750Gr3</em>). Si no tienes el Part Number exacto, llena solo este campo y el bot buscará todas las opciones de ese modelo.
+              </div>
+              <div>
+                <span style={{ color: '#fff', fontWeight: 'bold' }}>3. Part Number (P/N):</span> El código o SKU único del fabricante (ej. <em>C9200L-48P-4X-E</em>, <em>21DD001WLM</em>).
+                <div style={{ background: '#141414', borderLeft: '2px solid var(--alert-green)', padding: '0.4rem 0.6rem', marginTop: '0.3rem', color: '#ccc' }}>
+                  📌 <strong>Aplica a cualquier equipo:</strong> Es el código de catálogo de fábrica. Define la configuración técnica exacta (procesador, memoria, puertos, alimentación o licencias).
+                </div>
+                <div style={{ background: '#141414', borderLeft: '2px solid var(--accent)', padding: '0.4rem 0.6rem', marginTop: '0.3rem', color: '#ccc' }}>
+                  ⚠️ <strong>Regla clave:</strong> Escribe únicamente el código alfanumérico oficial. No agregues adjetivos en español como "negro" o "1U" aquí.
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-system-guide'))}
+              className="sharp-btn"
+              style={{ width: '100%', justifyContent: 'center', marginTop: '1rem', fontSize: '0.75rem', padding: '0.5rem' }}
+            >
+              <BookOpen size={14} /> VER GUÍA COMPLETA CON EJEMPLOS
+            </button>
+          </div>
         </div>
 
         {/* TABLA DE PRODUCTOS */}

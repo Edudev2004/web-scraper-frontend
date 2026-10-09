@@ -1,7 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Database, Settings, Bell, Server, Users, ActivitySquare } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, Bell, Server, Users, ActivitySquare, HelpCircle } from 'lucide-react';
 
-export const Sidebar = () => {
+interface SidebarProps {
+  onOpenGuide?: () => void;
+}
+
+export const Sidebar = ({ onOpenGuide }: SidebarProps) => {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -36,6 +40,26 @@ export const Sidebar = () => {
         </NavLink>
 
         <div style={{ flexGrow: 1 }}></div>
+
+        {onOpenGuide && (
+          <button 
+            type="button"
+            onClick={onOpenGuide} 
+            className="nav-item" 
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              width: '100%', 
+              cursor: 'pointer',
+              color: 'var(--accent)',
+              textAlign: 'left'
+            }}
+            title="Abrir Centro de Guía y Recomendaciones"
+          >
+            <HelpCircle size={20} className="nav-icon" color="var(--accent)" />
+            <span className="nav-text">Guía & Ayuda</span>
+          </button>
+        )}
 
         <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <Settings size={20} className="nav-icon" />
