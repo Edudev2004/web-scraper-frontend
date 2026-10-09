@@ -21,6 +21,14 @@ export interface Product {
 export interface Deal {
   log_id: number;
   scraped_at: string;
+  price_original: number;
+  currency_code: string;
+  currency_symbol: string;
   price_usd: number;
   stock_status: string;
+  product_name?: string;
+  vendor_name?: string;
+  product_url?: string;
+  offer_title?: string | null;
 }
+
