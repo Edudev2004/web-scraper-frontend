@@ -9,6 +9,7 @@ export const DashboardPage = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [triggerStatus, setTriggerStatus] = useState<string>('');
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,6 +40,67 @@ export const DashboardPage = () => {
     }
   };
 
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedProducts = [...products];
+  if (sortConfig !== null) {
+    sortedProducts.sort((a, b) => {
+      let aVal: any = '';
+      let bVal: any = '';
+      
+      switch (sortConfig.key) {
+        case 'id':
+          aVal = a.product_id;
+          bVal = b.product_id;
+          break;
+        case 'name':
+          aVal = a.product_name.toLowerCase();
+          bVal = b.product_name.toLowerCase();
+          break;
+        case 'brand':
+          aVal = (a.brand?.brand_name || '').toLowerCase();
+          bVal = (b.brand?.brand_name || '').toLowerCase();
+          break;
+        case 'category':
+          aVal = (a.category?.category_name || '').toLowerCase();
+          bVal = (b.category?.category_name || '').toLowerCase();
+          break;
+        case 'model':
+          aVal = (a.model_number || '').toLowerCase();
+          bVal = (b.model_number || '').toLowerCase();
+          break;
+        case 'part':
+          aVal = (a.part_number || '').toLowerCase();
+          bVal = (b.part_number || '').toLowerCase();
+          break;
+      }
+      
+      if (aVal < bVal) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aVal > bVal) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }
+
+  const [expandedDescIds, setExpandedDescIds] = useState<number[]>([]);
+  
+  const toggleDesc = (id: number) => {
+    if (expandedDescIds.includes(id)) {
+      setExpandedDescIds(expandedDescIds.filter(x => x !== id));
+    } else {
+      setExpandedDescIds([...expandedDescIds, id]);
+    }
+  };
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -49,7 +111,7 @@ export const DashboardPage = () => {
 
   const item = {
     hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    show: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
   };
 
   return (
@@ -98,17 +160,29 @@ export const DashboardPage = () => {
               <table className="sharp-table">
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>TÉRMINO / BÚSQUEDA</th>
-                    <th>MARCA</th>
-                    <th>MODELO</th>
-                    <th>PART NUMBER</th>
-                    <th>CATEGORÍA</th>
-                    <th>ESTADO</th>
+                    <th onClick={() => handleSort('id')} style={{cursor: 'pointer', userSelect: 'none'}}>
+                      ID {sortConfig?.key === 'id' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                    </th>
+                    <th onClick={() => handleSort('name')} style={{cursor: 'pointer', userSelect: 'none'}}>
+                      TÉRMINO / BÚSQUEDA {sortConfig?.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                    </th>
+                    <th onClick={() => handleSort('brand')} style={{cursor: 'pointer', userSelect: 'none'}}>
+                      MARCA {sortConfig?.key === 'brand' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                    </th>
+                    <th onClick={() => handleSort('model')} style={{cursor: 'pointer', userSelect: 'none'}}>
+                      MODELO {sortConfig?.key === 'model' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                    </th>
+                    <th onClick={() => handleSort('part')} style={{cursor: 'pointer', userSelect: 'none'}}>
+                      PART NUMBER {sortConfig?.key === 'part' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                    </th>
+                    <th onClick={() => handleSort('category')} style={{cursor: 'pointer', userSelect: 'none'}}>
+                      CATEGORÍA {sortConfig?.key === 'category' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                    </th>
+                    <th>DESCRIPCIÓN</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((prod, idx) => (
+                  {sortedProducts.map((prod, idx) => (
                     <motion.tr 
                       key={prod.product_id}
                       initial={{ opacity: 0, x: -10 }}
@@ -122,7 +196,19 @@ export const DashboardPage = () => {
                       <td>{prod.part_number || 'N/A'}</td>
                       <td>{prod.category?.category_name || 'General'}</td>
                       <td>
-                        <span className="status-indicator"></span> Activo
+                        {prod.description ? (
+                          expandedDescIds.includes(prod.product_id) ? (
+                            <div style={{ cursor: 'pointer', maxWidth: '200px', whiteSpace: 'normal', wordBreak: 'break-word', fontSize: '0.8rem', color: 'var(--text-secondary)' }} onClick={() => toggleDesc(prod.product_id)}>
+                              {prod.description}
+                            </div>
+                          ) : (
+                            <div style={{ cursor: 'pointer', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.8rem', color: 'var(--text-secondary)' }} onClick={() => toggleDesc(prod.product_id)} title="Click para expandir">
+                              {prod.description}
+                            </div>
+                          )
+                        ) : (
+                          <span style={{ color: '#555' }}>-</span>
+                        )}
                       </td>
                     </motion.tr>
                   ))}
