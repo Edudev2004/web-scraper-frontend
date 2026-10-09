@@ -15,6 +15,7 @@ export interface Product {
   category: Category | null;
   part_number: string | null;
   model_number: string | null;
+  description: string | null;
 }
 
 export interface Deal {
