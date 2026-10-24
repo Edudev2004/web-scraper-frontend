@@ -117,6 +117,7 @@ export const ProductsPage = () => {
     model_number: '',
     part_number: '',
     description: '',
+    umbral_precio: '',
     brand_id: 0, 
     category_id: 0 
   });
@@ -179,6 +180,7 @@ export const ProductsPage = () => {
       model_number: '', 
       part_number: '', 
       description: '',
+      umbral_precio: '', // <-- Umbral agregado
       brand_id: defBrand?.brand_id || 1, 
       category_id: defCat?.category_id || 1 
     });
@@ -228,6 +230,7 @@ export const ProductsPage = () => {
       model_number: prod.model_number || '',
       part_number: prod.part_number || '',
       description: prod.description || '',
+      umbral_precio: prod.umbral_precio ? prod.umbral_precio.toString() : '', 
       brand_id: prod.brand?.brand_id || 1,
       category_id: prod.category?.category_id || 1
     });
@@ -629,8 +632,29 @@ export const ProductsPage = () => {
                     Código/SKU de fábrica (define puertos, PoE, CPU, licencias). Solo el código.
                   </div>
                 </div>
-              </div>
 
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  PRECIO UMBRAL OBJETIVO <span style={{ fontSize: '0.7rem', color: 'var(--alert-green)' }}>(Dispara Alerta)</span>
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', background: '#0a0a0a', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+                  <span style={{ padding: '0 1rem', color: 'var(--text-secondary)', borderRight: '1px solid var(--border-color)', fontWeight: 'bold' }}>$</span>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    required
+                    value={formData.umbral_precio}
+                    onChange={e => setFormData({...formData, umbral_precio: e.target.value})}
+                    placeholder="Ej. 1200.50"
+                    style={{ width: '100%', background: 'transparent', border: 'none', color: '#fff', padding: '0.8rem', fontFamily: 'monospace', outline: 'none' }}
+                  />
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#777', marginTop: '0.3rem' }}>
+                  Si el scraper detecta un precio menor o igual a este monto, notificará en tiempo real.
+                </div>
+              </div>
+                
               <div>
                 <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>DESCRIPCIÓN / NOTAS</label>
                 <textarea 

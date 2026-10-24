@@ -16,6 +16,7 @@ export interface Product {
   part_number: string | null;
   model_number: string | null;
   description: string | null;
+  umbral_precio?: number | null;
 }
 
 export interface Deal {
@@ -31,4 +32,5 @@ export interface Deal {
   product_url?: string;
   offer_title?: string | null;
 }
+
 

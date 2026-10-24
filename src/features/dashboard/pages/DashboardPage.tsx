@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { dashboardService } from '../services/dashboardService';
 import type { Product, Deal } from '../types';
-import { motion } from 'framer-motion';
-import { Activity, Target, Zap, Terminal, ExternalLink, BookOpen, ShieldCheck, CheckCircle2, DollarSign, Layers } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+// Se corrigió la importación duplicada
+import { Activity, Target, Zap, Terminal, ExternalLink, BookOpen, ShieldCheck, CheckCircle2, DollarSign, Layers, BellRing, X } from 'lucide-react';
+import { useWebSocket } from '../../../hooks/useWebSocket';
+import { PriceHistoryChart } from '../components/PriceHistoryChart';
 
 export const DashboardPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -16,6 +19,9 @@ export const DashboardPage = () => {
   });
   const [displayMode, setDisplayMode] = useState<'both' | 'usd' | 'original'>('both');
   const [showHelperBanner, setShowHelperBanner] = useState(true);
+
+  // Conexión WebSocket al backend (Ajustar URL según el entorno)
+  const { alertas, isWsConnected, limpiarAlertas } = useWebSocket('ws://127.0.0.1:8000/ws/alertas');
 
   const loadData = async () => {
     try {
@@ -42,7 +48,6 @@ export const DashboardPage = () => {
       await dashboardService.triggerScraper();
       setTriggerStatus('RASTREANDO OFERTAS...');
       
-      // Consultar ofertas automáticamente después de que el bot ejecute en segundo plano
       setTimeout(async () => {
         await loadData();
         setTriggerStatus('¡OFERTAS ACTUALIZADAS!');
@@ -69,38 +74,16 @@ export const DashboardPage = () => {
       let bVal: any = '';
       
       switch (sortConfig.key) {
-        case 'id':
-          aVal = a.product_id;
-          bVal = b.product_id;
-          break;
-        case 'name':
-          aVal = a.product_name.toLowerCase();
-          bVal = b.product_name.toLowerCase();
-          break;
-        case 'brand':
-          aVal = (a.brand?.brand_name || '').toLowerCase();
-          bVal = (b.brand?.brand_name || '').toLowerCase();
-          break;
-        case 'category':
-          aVal = (a.category?.category_name || '').toLowerCase();
-          bVal = (b.category?.category_name || '').toLowerCase();
-          break;
-        case 'model':
-          aVal = (a.model_number || '').toLowerCase();
-          bVal = (b.model_number || '').toLowerCase();
-          break;
-        case 'part':
-          aVal = (a.part_number || '').toLowerCase();
-          bVal = (b.part_number || '').toLowerCase();
-          break;
+        case 'id': aVal = a.product_id; break;
+        case 'name': aVal = a.product_name.toLowerCase(); break;
+        case 'brand': aVal = (a.brand?.brand_name || '').toLowerCase(); break;
+        case 'category': aVal = (a.category?.category_name || '').toLowerCase(); break;
+        case 'model': aVal = (a.model_number || '').toLowerCase(); break;
+        case 'part': aVal = (a.part_number || '').toLowerCase(); break;
       }
       
-      if (aVal < bVal) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (aVal > bVal) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
   }
@@ -117,10 +100,7 @@ export const DashboardPage = () => {
 
   const container = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const item = {
@@ -128,6 +108,16 @@ export const DashboardPage = () => {
     show: { y: 0, opacity: 1, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
   };
 
+  // Mapear los datos reales del backend para el gráfico
+  const chartData = deals
+    .slice() // Hacemos una copia para no mutar el estado original
+    .sort((a, b) => new Date(a.scraped_at).getTime() - new Date(b.scraped_at).getTime()) // Orden cronológico
+    .map(deal => ({
+      fecha: new Date(deal.scraped_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' }),
+      precio: deal.currency_code === 'PEN' ? (deal.price_original / exchangeRate) : deal.price_original
+    }))
+    .slice(-15); // Se muestran las ultimas 15 variaciones para que el gráfico no se sature
+  
   return (
     <motion.div initial="hidden" animate="show" variants={container}>
       <header className="sharp-header">
@@ -153,7 +143,6 @@ export const DashboardPage = () => {
         </div>
       </header>
 
-      {/* BANNER INFORMATIVO RÁPIDO PARA EL USUARIO */}
       {showHelperBanner && (
         <div style={{
           background: 'linear-gradient(90deg, rgba(0, 240, 255, 0.04) 0%, rgba(20, 20, 20, 0.8) 100%)',
@@ -196,11 +185,14 @@ export const DashboardPage = () => {
 
       <div className="sharp-grid">
         <motion.div variants={item} className="sharp-panel">
-          <div className="panel-title"><Activity size={16}/> Estado del Motor</div>
-          <div className="panel-data">
-            <span className="status-indicator processing"></span> EN LÍNEA
+          <div className="panel-title"><Activity size={16}/> Estado del Motor (WS)</div>
+          <div className="panel-data" style={{ color: isWsConnected ? '#00f0ff' : '#ff3333' }}>
+            <span className={`status-indicator ${isWsConnected ? 'processing' : 'offline'}`}></span> 
+            {isWsConnected ? 'EN LÍNEA' : 'DESCONECTADO'}
           </div>
-          <div className="panel-meta"><span>MODO: Autónomo</span><span></span></div>
+          <div className="panel-meta">
+            <span>MODO: {isWsConnected ? 'Reactivo (Tiempo Real)' : 'Manual'}</span>
+          </div>
         </motion.div>
         
         <motion.div variants={item} className="sharp-panel">
@@ -216,7 +208,10 @@ export const DashboardPage = () => {
         </motion.div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+      {/* Gráfico de Tendencias Real */}
+      <PriceHistoryChart data={chartData} />
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem', marginTop: '2rem' }}>
         <motion.div variants={item}>
           <h2 className="section-title"><Target size={18} /> Objetivos Monitorizados</h2>
           <div className="table-container">
@@ -299,7 +294,6 @@ export const DashboardPage = () => {
               <Zap size={18} /> Últimas Oportunidades
             </h2>
 
-            {/* Panel de Control de Divisas y Tipo de Cambio */}
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
@@ -310,7 +304,6 @@ export const DashboardPage = () => {
               padding: '0.4rem 0.8rem', 
               borderRadius: '4px' 
             }}>
-              {/* Input de Tipo de Cambio Editable */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 <span style={{ color: 'var(--alert-green)', fontWeight: 'bold' }}>$ 1 USD =</span>
                 <input 
@@ -341,7 +334,6 @@ export const DashboardPage = () => {
                 <span style={{ fontSize: '0.75rem', color: '#888' }}>PEN (Soles)</span>
               </div>
 
-              {/* Selector de Modo de Visualización */}
               <div style={{ display: 'flex', gap: '0.25rem', borderLeft: '1px solid #333', paddingLeft: '0.8rem' }}>
                 <button
                   type="button"
@@ -461,7 +453,6 @@ export const DashboardPage = () => {
                           </span>
                         </td>
 
-                        {/* Columna Precio Original */}
                         {(displayMode === 'both' || displayMode === 'original') && (
                           <td style={{ fontSize: '0.95rem', fontWeight: 600, color: '#e0e0e0' }}>
                             <span style={{ 
@@ -478,7 +469,6 @@ export const DashboardPage = () => {
                           </td>
                         )}
 
-                        {/* Columna Precio Convertido USD */}
                         {(displayMode === 'both' || displayMode === 'usd') && (
                           <td style={{ color: 'var(--alert-green)', fontWeight: 'bold', fontSize: '1.05rem' }}>
                             ${calculatedUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -520,6 +510,63 @@ export const DashboardPage = () => {
             )}
           </div>
         </motion.div>
+      </div>
+
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        width: '350px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        zIndex: 1000,
+        pointerEvents: 'none'
+      }}>
+        <AnimatePresence>
+          {alertas.map((alerta, index) => (
+            <motion.div
+              key={`${alerta.id}-${index}`}
+              initial={{ opacity: 0, x: 50, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+              style={{
+                background: 'rgba(10, 10, 10, 0.95)',
+                border: '1px solid var(--alert-green)',
+                borderLeft: '4px solid var(--alert-green)',
+                padding: '1rem',
+                borderRadius: '4px',
+                boxShadow: '0 10px 25px rgba(0,255,0,0.15)',
+                backdropFilter: 'blur(10px)',
+                pointerEvents: 'auto'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--alert-green)', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                  <BellRing size={14} className="animate-pulse" />
+                  {alerta.tipo_evento === 'caida_precio' ? '¡CAÍDA DE PRECIO!' : '¡RE-STOCK DETECTADO!'}
+                </div>
+                <span style={{ fontSize: '0.7rem', color: '#888' }}>Ahora mismo</span>
+              </div>
+              <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '0.2rem', lineHeight: '1.2' }}>
+                {alerta.producto_nombre}
+              </div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                Valor detectado: <span style={{ color: 'var(--alert-green)', fontWeight: 'bold', fontSize: '1rem' }}>${alerta.valor_detectado}</span>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {alertas.length > 0 && (
+          <button 
+            onClick={limpiarAlertas}
+            className="sharp-btn"
+            style={{ pointerEvents: 'auto', alignSelf: 'flex-end', padding: '0.3rem 0.8rem', fontSize: '0.7rem', marginTop: '5px' }}
+          >
+            Limpiar Notificaciones
+          </button>
+        )}
       </div>
     </motion.div>
   );
