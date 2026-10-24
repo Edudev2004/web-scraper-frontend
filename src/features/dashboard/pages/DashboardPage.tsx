@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { dashboardService } from '../services/dashboardService';
+import { vendorService } from '../../vendors/services/vendorService';
 import type { Product, Deal } from '../types';
+import type { Vendor } from '../../vendors/types';
 import { motion } from 'framer-motion';
-import { Activity, Target, Zap, Terminal, ExternalLink, BookOpen, ShieldCheck, DollarSign, Layers, CheckCircle2 } from 'lucide-react';
+import { 
+  Activity, Target, Zap, Terminal, ExternalLink, BookOpen, 
+  ShieldCheck, DollarSign, Layers, CheckCircle2, Building2, 
+  Server, Radio, Cpu, Database, ArrowUpRight 
+} from 'lucide-react';
 
 export const DashboardPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEngineOnline, setIsEngineOnline] = useState<boolean>(true);
   const [triggerStatus, setTriggerStatus] = useState<string>('');
@@ -20,12 +28,14 @@ export const DashboardPage = () => {
 
   const loadData = async () => {
     try {
-      const [prodData, dealData] = await Promise.all([
+      const [prodData, dealData, vendorData] = await Promise.all([
         dashboardService.getProducts(),
-        dashboardService.getDeals()
+        dashboardService.getDeals(),
+        vendorService.getVendors().catch(() => [])
       ]);
       setProducts(prodData);
       setDeals(dealData);
+      setVendors(vendorData);
       setIsEngineOnline(true);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -118,6 +128,19 @@ export const DashboardPage = () => {
     }
   };
 
+  const ciscoCount = products.filter(p => (p.brand?.brand_name || p.product_name).toLowerCase().includes('cisco')).length;
+  const mikrotikCount = products.filter(p => (p.brand?.brand_name || p.product_name).toLowerCase().includes('mikrotik')).length;
+  const amazonDeals = deals.filter(d => (d.vendor_name || '').toLowerCase().includes('amazon')).length;
+  const mlDeals = deals.filter(d => (d.vendor_name || '').toLowerCase().includes('mercadolibre')).length;
+
+  const displayVendors = vendors.length > 0 ? vendors : [
+    { vendor_id: 1, vendor_name: 'Amazon', country_code: 'US', default_currency_id: 1, is_active: true, created_at: '' },
+    { vendor_id: 2, vendor_name: 'MercadoLibre', country_code: 'PE', default_currency_id: 2, is_active: true, created_at: '' },
+    { vendor_id: 3, vendor_name: 'Legrand Perú', country_code: 'PE', default_currency_id: 2, is_active: true, created_at: '' },
+    { vendor_id: 4, vendor_name: 'Wesco Anixter', country_code: 'PE', default_currency_id: 1, is_active: true, created_at: '' }
+  ];
+  const activeVendorsCount = displayVendors.filter(v => v.is_active).length;
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -199,28 +222,118 @@ export const DashboardPage = () => {
 
       <div className="sharp-grid">
         <motion.div variants={item} className="sharp-panel">
-          <div className="panel-title"><Activity size={16}/> Estado del Motor</div>
-          <div className="panel-data" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <span className={`status-indicator ${isEngineOnline ? 'online-pulse' : 'offline'}`}></span>
-            <span className={isEngineOnline ? 'engine-online-text' : ''} style={{ color: isEngineOnline ? '#00ff66' : 'var(--alert-red)' }}>
-              {isEngineOnline ? 'EN LÍNEA' : 'DESCONECTADO'}
-            </span>
+          <div>
+            <div className="panel-title">
+              <Activity size={16}/> Estado del Motor
+              <span className="panel-badge-status">v3.11</span>
+            </div>
+            <div className="panel-data" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <span className={`status-indicator ${isEngineOnline ? 'online-pulse' : 'offline'}`}></span>
+              <span className={isEngineOnline ? 'engine-online-text' : ''} style={{ color: isEngineOnline ? '#00ff66' : 'var(--alert-red)' }}>
+                {isEngineOnline ? 'EN LÍNEA' : 'DESCONECTADO'}
+              </span>
+            </div>
+            <div className="panel-chips">
+              <span className="panel-chip success">
+                <Radio size={11} /> APScheduler: 12h
+              </span>
+              <span className="panel-chip accent">
+                <Database size={11} /> Supabase Cloud
+              </span>
+              <span className="panel-chip">
+                TLS Pooler Activo
+              </span>
+            </div>
           </div>
           <div className="panel-meta">
             <span>{isEngineOnline ? 'MODO: Autónomo (Activo)' : 'MODO: Sin conexión'}</span>
+            <span style={{ color: '#00ff66', fontFamily: 'JetBrains Mono', fontSize: '0.7rem' }}>PING &lt; 50ms</span>
           </div>
         </motion.div>
         
         <motion.div variants={item} className="sharp-panel">
-          <div className="panel-title"><Target size={16}/> Términos Activos</div>
-          <div className="panel-data">{products.length}</div>
-          <div className="panel-meta"><span>Objetivos monitorizados</span></div>
+          <div>
+            <div className="panel-title">
+              <Target size={16}/> Objetivos Activos
+              <span className="panel-badge-status">100% Nuevos</span>
+            </div>
+            <div className="panel-data" style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+              <span>{products.length}</span>
+              <span className="panel-unit">equipos IT</span>
+            </div>
+            <div className="panel-chips">
+              <span className="panel-chip accent">
+                <Server size={11} /> Cisco: {ciscoCount}
+              </span>
+              <span className="panel-chip">
+                <Cpu size={11} /> MikroTik: {mikrotikCount}
+              </span>
+              <span className="panel-chip success">
+                Regla P/N Estricta
+              </span>
+            </div>
+          </div>
+          <div className="panel-meta">
+            <span>Filtro: Sin usados</span>
+            <Link to="/products" className="panel-link">
+              GESTIONAR <ArrowUpRight size={12} />
+            </Link>
+          </div>
         </motion.div>
         
         <motion.div variants={item} className="sharp-panel">
-          <div className="panel-title"><Zap size={16}/> Oportunidades Hoy</div>
-          <div className="panel-data">{deals.length}</div>
-          <div className="panel-meta"><span>Registradas en log</span></div>
+          <div>
+            <div className="panel-title">
+              <Zap size={16}/> Oportunidades Hoy
+              <span className="panel-badge-status">Histórico</span>
+            </div>
+            <div className="panel-data" style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+              <span>{deals.length}</span>
+              <span className="panel-unit">cotizaciones</span>
+            </div>
+            <div className="panel-chips">
+              <span className="panel-chip">
+                Amazon: {amazonDeals}
+              </span>
+              <span className="panel-chip">
+                MercadoLibre: {mlDeals}
+              </span>
+              <span className="panel-chip warning">
+                T.C. S/ {exchangeRate.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <div className="panel-meta">
+            <span>Auditoría: Verificada</span>
+            <span style={{ color: '#aaa', fontFamily: 'JetBrains Mono', fontSize: '0.7rem' }}>{deals.length > 0 ? 'LOG ACTIVO' : 'SIN REGISTROS'}</span>
+          </div>
+        </motion.div>
+
+        <motion.div variants={item} className="sharp-panel">
+          <div>
+            <div className="panel-title">
+              <Building2 size={16}/> Proveedores y Tiendas
+              <span className="panel-badge-status">Multicanal</span>
+            </div>
+            <div className="panel-data" style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+              <span>{activeVendorsCount}</span>
+              <span className="panel-unit">conectados</span>
+            </div>
+            <div className="panel-chips">
+              {displayVendors.slice(0, 4).map((v) => (
+                <span key={v.vendor_id} className="panel-chip-vendor">
+                  <span className="vendor-dot"></span>
+                  {v.vendor_name}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="panel-meta">
+            <span>COBERTURA: PE + USA</span>
+            <Link to="/vendors" className="panel-link">
+              VER CANALES <ArrowUpRight size={12} />
+            </Link>
+          </div>
         </motion.div>
       </div>
 

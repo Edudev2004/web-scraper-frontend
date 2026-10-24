@@ -83,7 +83,7 @@ body {
 
 .sharp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.5rem;
   margin-bottom: 3rem;
 }
@@ -95,6 +95,9 @@ body {
   position: relative;
   transition: all 0.3s ease;
   border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .sharp-panel:hover {
@@ -131,11 +134,91 @@ body {
   gap: 0.5rem;
 }
 
+.panel-badge-status {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 0.15rem 0.45rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #262626;
+  color: #888;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
 .panel-data {
   font-family: 'Inter', sans-serif;
-  font-size: 2.5rem;
+  font-size: 2.3rem;
   font-weight: 800;
   color: #fff;
+  line-height: 1.1;
+}
+
+.panel-unit {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  min-height: 1.8rem;
+}
+
+.panel-chip {
+  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #222;
+  color: #aaa;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1.2;
+}
+
+.panel-chip.accent {
+  border-color: rgba(0, 240, 255, 0.3);
+  color: var(--accent);
+  background: rgba(0, 240, 255, 0.05);
+}
+
+.panel-chip.success {
+  border-color: rgba(0, 255, 102, 0.3);
+  color: #00ff66;
+  background: rgba(0, 255, 102, 0.05);
+}
+
+.panel-chip.warning {
+  border-color: rgba(255, 183, 77, 0.3);
+  color: #ffb74d;
+  background: rgba(255, 183, 77, 0.05);
+}
+
+.panel-chip-vendor {
+  font-size: 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #262626;
+  color: #ccc;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.vendor-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
 }
 
 .panel-meta {
@@ -145,8 +228,25 @@ body {
   margin-top: 1rem;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border-top: 1px solid #1a1a1a;
   padding-top: 0.75rem;
+}
+
+.panel-link {
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.panel-link:hover {
+  color: #fff;
+  transform: translateX(2px);
 }
 
 .section-title {
