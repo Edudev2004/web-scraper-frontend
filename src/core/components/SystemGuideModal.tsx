@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
-  HelpCircle, 
   BookOpen, 
   Target, 
   ShieldCheck, 
   DollarSign, 
   ExternalLink, 
   CheckCircle2, 
-  AlertTriangle, 
   Layers, 
   Tag, 
   Cpu, 

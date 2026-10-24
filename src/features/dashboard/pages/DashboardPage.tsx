@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { dashboardService } from '../services/dashboardService';
 import type { Product, Deal } from '../types';
 import { motion } from 'framer-motion';
-import { Activity, Target, Zap, Terminal, ExternalLink, BookOpen, ShieldCheck, CheckCircle2, DollarSign, Layers } from 'lucide-react';
+import { Activity, Target, Zap, Terminal, ExternalLink, BookOpen, ShieldCheck, DollarSign, Layers, CheckCircle2 } from 'lucide-react';
 
 export const DashboardPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEngineOnline, setIsEngineOnline] = useState<boolean>(true);
   const [triggerStatus, setTriggerStatus] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number>(() => {
@@ -25,8 +26,10 @@ export const DashboardPage = () => {
       ]);
       setProducts(prodData);
       setDeals(dealData);
+      setIsEngineOnline(true);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setIsEngineOnline(false);
     } finally {
       setLoading(false);
     }
@@ -197,10 +200,15 @@ export const DashboardPage = () => {
       <div className="sharp-grid">
         <motion.div variants={item} className="sharp-panel">
           <div className="panel-title"><Activity size={16}/> Estado del Motor</div>
-          <div className="panel-data">
-            <span className="status-indicator processing"></span> EN LÍNEA
+          <div className="panel-data" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span className={`status-indicator ${isEngineOnline ? 'online-pulse' : 'offline'}`}></span>
+            <span className={isEngineOnline ? 'engine-online-text' : ''} style={{ color: isEngineOnline ? '#00ff66' : 'var(--alert-red)' }}>
+              {isEngineOnline ? 'EN LÍNEA' : 'DESCONECTADO'}
+            </span>
           </div>
-          <div className="panel-meta"><span>MODO: Autónomo</span><span></span></div>
+          <div className="panel-meta">
+            <span>{isEngineOnline ? 'MODO: Autónomo (Activo)' : 'MODO: Sin conexión'}</span>
+          </div>
         </motion.div>
         
         <motion.div variants={item} className="sharp-panel">

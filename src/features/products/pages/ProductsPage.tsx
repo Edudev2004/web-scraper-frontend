@@ -3,7 +3,7 @@ import { dashboardService } from '../../dashboard/services/dashboardService';
 import { productService } from '../services/productService';
 import type { Product } from '../../dashboard/types';
 import { motion } from 'framer-motion';
-import { Database, Plus, Trash2, Crosshair, Edit2, Save, X, Hash, Activity, BookOpen, Sparkles, Lightbulb, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Database, Plus, Trash2, Crosshair, Edit2, Save, X, Hash, Activity, BookOpen, Sparkles, Lightbulb } from 'lucide-react';
 
 const SearchableSelect = ({ items, valueId, onChange, onCreate, onDelete, itemNameKey, itemIdKey, defaultItemName }: any) => {
   const [isOpen, setIsOpen] = useState(false);
